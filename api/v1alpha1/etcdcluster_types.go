@@ -28,8 +28,8 @@ type EtcdClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of EtcdCluster. Edit etcdcluster_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Size  *int32 `json:"size"`
+	Image string `json:"image"`
 }
 
 // EtcdClusterStatus defines the observed state of EtcdCluster
