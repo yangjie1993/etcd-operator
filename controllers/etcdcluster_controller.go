@@ -89,7 +89,7 @@ func (r *EtcdClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	log.Info("CreateOrUpdate", "Service", or)
+	log.Info("CreateOrUpdate", "sts", or)
 	return ctrl.Result{}, nil
 }
 

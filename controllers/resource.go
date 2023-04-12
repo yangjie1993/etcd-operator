@@ -22,8 +22,8 @@ func newContainers(cluster *etcdv1alpha1.EtcdCluster) []corev1.Container {
 			Image:           cluster.Spec.Image,
 			ImagePullPolicy: corev1.PullIfNotPresent,
 			Ports: []corev1.ContainerPort{
-				{Name: "peer", HostPort: 2380},
-				{Name: "2379", HostPort: 2379},
+				{Name: "peer", ContainerPort: 2380},
+				{Name: "client", ContainerPort: 2379},
 			},
 			Env: []corev1.EnvVar{
 				{
