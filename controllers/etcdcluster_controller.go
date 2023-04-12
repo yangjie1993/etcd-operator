@@ -34,9 +34,10 @@ type EtcdClusterReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=etcd.yj.io,resources=etcdclusters,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=etcd.yj.io,resources=etcdclusters/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=etcd.yj.io,resources=etcdclusters/finalizers,verbs=update
+// +kubebuilder:rbac:groups=etcd.ydzs.io,resources=etcdclusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=etcd.ydzs.io,resources=etcdclusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -66,7 +67,7 @@ func (r *EtcdClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var svc corev1.Service
 	svc.Name = etcdCluster.Name
 	svc.Namespace = etcdCluster.Namespace
-	or, err := ctrl.CreateOrUpdate(ctx, r, &svc, func() error {
+	or, err := ctrl.CreateOrUpdate(ctx, r.Client, &svc, func() error {
 		//调谐的函数必须再这里实现，实际上就是去拼装我们的service
 		MutateHeadlessSvc(&etcdCluster, &svc)
 		return controllerutil.SetControllerReference(&etcdCluster, &svc, r.Scheme)
@@ -80,7 +81,7 @@ func (r *EtcdClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var sts appsv1.StatefulSet
 	sts.Name = etcdCluster.Name
 	sts.Namespace = etcdCluster.Namespace
-	or, err = ctrl.CreateOrUpdate(ctx, r, &sts, func() error {
+	or, err = ctrl.CreateOrUpdate(ctx, r.Client, &sts, func() error {
 		//调谐的函数必须再这里实现，实际上就是去拼装我们的service
 		MutateStatefulSet(&etcdCluster, &sts)
 		return controllerutil.SetControllerReference(&etcdCluster, &sts, r.Scheme)
