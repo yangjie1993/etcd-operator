@@ -35,10 +35,14 @@ spec:
           spec:
             description: EtcdClusterSpec defines the desired state of EtcdCluster
             properties:
-              foo:
-                description: Foo is an example field of EtcdCluster. Edit etcdcluster_types.go
-                  to remove/update
+              image:
                 type: string
+              size:
+                format: int32
+                type: integer
+            required:
+            - image
+            - size
             type: object
           status:
             description: EtcdClusterStatus defines the observed state of EtcdCluster

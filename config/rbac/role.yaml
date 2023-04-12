@@ -6,7 +6,31 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - etcd.yj.io
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - etcd.ydzs.io
   resources:
   - etcdclusters
   verbs:
@@ -18,13 +42,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - etcd.yj.io
-  resources:
-  - etcdclusters/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - etcd.yj.io
+  - etcd.ydzs.io
   resources:
   - etcdclusters/status
   verbs:
