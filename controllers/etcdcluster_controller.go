@@ -22,6 +22,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/util/retry"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -67,29 +68,55 @@ func (r *EtcdClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	var svc corev1.Service
 	svc.Name = etcdCluster.Name
 	svc.Namespace = etcdCluster.Namespace
-	or, err := ctrl.CreateOrUpdate(ctx, r.Client, &svc, func() error {
-		//调谐的函数必须再这里实现，实际上就是去拼装我们的service
-		MutateHeadlessSvc(&etcdCluster, &svc)
-		return controllerutil.SetControllerReference(&etcdCluster, &svc, r.Scheme)
-	})
-	if err != nil {
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		or, err := ctrl.CreateOrUpdate(ctx, r.Client, &svc, func() error {
+			// 调谐的函数必须在这里面实现，实际上就是去拼装我们的 Service
+			MutateHeadlessSvc(&etcdCluster, &svc)
+			return controllerutil.SetControllerReference(&etcdCluster, &svc, r.Scheme)
+		})
+		log.Info("CreateOrUpdate Result", "Service", or)
+		return err
+	}); err != nil {
 		return ctrl.Result{}, err
 	}
-	log.Info("CreateOrUpdate", "Service", or)
-
-	//CreateOrUpdate sts
+	//or, err := ctrl.CreateOrUpdate(ctx, r.Client, &svc, func() error {
+	//	//调谐的函数必须再这里实现，实际上就是去拼装我们的service
+	//	MutateHeadlessSvc(&etcdCluster, &svc)
+	//	return controllerutil.SetControllerReference(&etcdCluster, &svc, r.Scheme)
+	//})
+	//if err != nil {
+	//	return ctrl.Result{}, err
+	//}
+	//log.Info("CreateOrUpdate", "Service", or)
+	// CreateOrUpdate StatefulSet
 	var sts appsv1.StatefulSet
 	sts.Name = etcdCluster.Name
 	sts.Namespace = etcdCluster.Namespace
-	or, err = ctrl.CreateOrUpdate(ctx, r.Client, &sts, func() error {
-		//调谐的函数必须再这里实现，实际上就是去拼装我们的service
-		MutateStatefulSet(&etcdCluster, &sts)
-		return controllerutil.SetControllerReference(&etcdCluster, &sts, r.Scheme)
-	})
-	if err != nil {
+
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		or, err := ctrl.CreateOrUpdate(ctx, r.Client, &sts, func() error {
+			// 调谐的函数必须在这里面实现，实际上就是去拼装我们的 StatefulSet
+			MutateStatefulSet(&etcdCluster, &sts)
+			return controllerutil.SetControllerReference(&etcdCluster, &sts, r.Scheme)
+		})
+		log.Info("CreateOrUpdate Result", "StatefulSet", or)
+		return err
+	}); err != nil {
 		return ctrl.Result{}, err
 	}
-	log.Info("CreateOrUpdate", "sts", or)
+	//CreateOrUpdate sts
+	//var sts appsv1.StatefulSet
+	//sts.Name = etcdCluster.Name
+	//sts.Namespace = etcdCluster.Namespace
+	//or, err = ctrl.CreateOrUpdate(ctx, r.Client, &sts, func() error {
+	//	//调谐的函数必须再这里实现，实际上就是去拼装我们的service
+	//	MutateStatefulSet(&etcdCluster, &sts)
+	//	return controllerutil.SetControllerReference(&etcdCluster, &sts, r.Scheme)
+	//})
+	//if err != nil {
+	//	return ctrl.Result{}, err
+	//}
+	//log.Info("CreateOrUpdate", "sts", or)
 	return ctrl.Result{}, nil
 }
 
@@ -97,5 +124,7 @@ func (r *EtcdClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *EtcdClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&etcdv1alpha1.EtcdCluster{}).
+		Owns(&appsv1.StatefulSet{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }

@@ -46,7 +46,7 @@ func newContainers(cluster *etcdv1alpha1.EtcdCluster) []corev1.Container {
 					Name: "POD_IP",
 					ValueFrom: &corev1.EnvVarSource{
 						FieldRef: &corev1.ObjectFieldSelector{
-							FieldPath: "status.PodIp",
+							FieldPath: "status.podIP",
 						},
 					},
 				},
