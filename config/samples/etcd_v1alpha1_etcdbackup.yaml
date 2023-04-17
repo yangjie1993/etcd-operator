@@ -1,12 +1,13 @@
-apiVersion: etcd.yj.io/v1alpha1
+apiVersion: etcd.ydzs.io/v1alpha1
 kind: EtcdBackup
 metadata:
-  labels:
-    app.kubernetes.io/name: etcdbackup
-    app.kubernetes.io/instance: etcdbackup-sample
-    app.kubernetes.io/part-of: etcd-operator
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: etcd-operator
   name: etcdbackup-sample
 spec:
-  # TODO(user): Add fields here
+  etcdUrl: <etcd-cluster-endpoints>  # 备份的节点 etcd 地址
+  storageType: s3  # 指定备份类型
+  s3:
+    path: "foo-bucket/snapshot.db"  # 数据存放目录
+    s3Secret: "secret"   # 包含 accessKeyID 与 secretAccessKey
+  oss:
+    path: "foo-bucket/snapshot.db"
+    ossSecret: "secret"
